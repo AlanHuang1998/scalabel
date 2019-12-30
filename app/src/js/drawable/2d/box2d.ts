@@ -48,7 +48,8 @@ export class Box2D extends Label2D {
   /** Draw the label on viewing or control canvas */
   public draw (context: Context2D, ratio: number, mode: DrawMode): void {
     const self = this
-
+    console.log("###draw###")
+    // console.log(self._shapes)
     // Set proper drawing styles
     let pointStyle = makePoint2DStyle()
     let highPointStyle = makePoint2DStyle()
@@ -212,12 +213,36 @@ export class Box2D extends Label2D {
   public onMouseDrag (srcCoord: Vector2D, destCoord: Vector2D, limit: Size2D,
                       labelIndex: number, handleIndex: number): void {
     console.log("label drag")
-    this._mouseDownCoord = srcCoord
-    if (this._highlightedHandle > 0 && labelIndex === this._labelId) {
+    if (!this.editing) {
+      this._startingRect = (this.shapes[0] as Rect2D).clone()
+      this._editing = true
+      this._mouseDownCoord = srcCoord
+    }
+    console.log(this._highlightedHandle)
+    console.log(handleIndex)
+    if (this._highlightedHandle > 0 &&
+      (labelIndex < 0 || labelIndex === this._labelId)) {
+      // console.log("***resize***")
       this.resize(destCoord, limit)
+      // console.log(this._shapes)
     } else if (this._highlightedHandle === 0 && handleIndex === 0) {
+      console.log("***move***")
+      console.log(this._startingRect)
       this.move(destCoord, limit)
     }
+  }
+
+  /**
+   * Handle mouse drag end
+   * @param _coord 
+   * @param _labelIndex 
+   * @param _handleIndex 
+   */
+  public onMouseDragEnd (_coord: Vector2D,
+                         _labelIndex: number, _handleIndex: number): void {
+    console.log("on mouse drag end")
+    this.editing = false
+    return
   }
 
   /**

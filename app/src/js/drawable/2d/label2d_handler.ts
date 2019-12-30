@@ -78,6 +78,7 @@ export class Label2DHandler {
         if (selectedLabel !== this._highlightedLabel) {
           selectedLabel.setHighlighted(false)
         }
+        selectedLabel.onMouseDragEnd(coord, labelIndex, handleIndex)
         this.commitLabel(index)
       })
     }

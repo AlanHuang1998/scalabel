@@ -271,7 +271,18 @@ export abstract class Label2D {
    * @param _handleIndex
    */
   public onMouseDrag (_srcCoord: Vector2D, _destCoord: Vector2D, _limit: Size2D,
-                      _labelIndex: number, _handleIndex: number) {
+                      _labelIndex: number, _handleIndex: number): void {
+    return
+  }
+
+  /**
+   * Handle mouse drag end
+   * @param _coord 
+   * @param _labelIndex 
+   * @param _handleIndex 
+   */
+  public onMouseDragEnd (_coord: Vector2D,
+                         _labelIndex: number, _handleIndex: number): void {
     return
   }
 
