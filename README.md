@@ -1,3 +1,7 @@
+## Note 
+
+The developement for Scalabel has been moved to its own repo to encourage community contributions. Please check latest changes, create new issues, and make pull requests at https://github.com/scalabel/scalabel.
+
 <p align="center"><img width=250 src="https://s3-us-west-2.amazonaws.com/scalabel-public/www/logo/scalable_dark.svg" /></p>
 
 ---
