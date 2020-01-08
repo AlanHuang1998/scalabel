@@ -246,22 +246,8 @@ export class Polygon2D extends Label2D {
    * @param _limit
    */
   public onMouseMove (coord: Vector2D, _limit: Size2D,
-                      labelIndex: number, handleIndex: number): boolean {
-    if (this._state === Polygon2DState.DRAW) {
-      // move to add vertex
-      this._mouseCoord = coord.clone()
-      if (labelIndex === this._index) {
-        this._highlightedHandle = handleIndex
-      }
-    } else if (this._mouseDown === true &&
-      this._state === Polygon2DState.RESHAPE) {
-      // dragging point
-      this.reshape(coord, _limit)
-    } else if (this._mouseDown === true &&
-      this._state === Polygon2DState.MOVE) {
-      // dragging edges
-      this.move(coord, _limit)
-    }
+                      _labelIndex: number, _handleIndex: number): boolean {
+    this._mouseCoord = coord.clone()
     return true
   }
 
@@ -301,6 +287,119 @@ export class Polygon2D extends Label2D {
     return true
   }
 
+  /**
+   * handle mouse click
+   * @param coord
+   * @param labelIndex
+   * @param handleIndex
+   */
+  public onMouseClick (coord: Vector2D,
+                       _labelIndex: number, _handleIndex: number): void {
+    console.log('label click')
+    console.log(coord)
+    if (this._selected) {
+      if (this._state === Polygon2DState.FINISHED &&
+          this._highlightedHandle < 0) {
+        return
+      } else if (this._state === Polygon2DState.FINISHED &&
+        this._highlightedHandle > 0) {
+      // click point
+        if (this.isKeyDown(Key.C_UP) || this.isKeyDown(Key.C_LOW)) {
+          // convert line to bezier curve
+          this.lineToCurve()
+        } else if (this.isKeyDown(Key.D_UP) || this.isKeyDown(Key.D_LOW)) {
+          // delete vertex
+          this.toCache()
+          this.deleteVertex()
+        }
+        return
+      }
+      if (this.editing === true &&
+        this._state === Polygon2DState.DRAW) {
+        // add vertex
+        console.log('add vertex')
+        const isFinished = this.addVertex(coord)
+        if (isFinished) {
+          console.log('finish drawing')
+          // finish adding when it is FINISHED
+          this._state = Polygon2DState.FINISHED
+          this.editing = false
+        }
+      }
+      console.log(this._points)
+    }
+  }
+
+  /**
+   * handle mouse drag
+   * @param srcCoord
+   * @param destCoord
+   * @param _limit
+   * @param labelIndex
+   * @param handleIndex
+   */
+  public onMouseDrag (srcCoord: Vector2D, destCoord: Vector2D, limit: Size2D,
+                      _labelIndex: number, handleIndex: number): void {
+    if (!this._editing && this._state === Polygon2DState.FINISHED) {
+      this._mouseCoord = srcCoord.clone()
+      this._mouseDown = true
+      if (this._highlightedHandle > 0) {
+        this.toCache()
+        this.editing = true
+        // drag point
+        this._state = Polygon2DState.RESHAPE
+        // drag vertex or midpoint
+        this.toCache()
+        if (this._points[this._highlightedHandle - 1].type ===
+          PointType.MID) {
+          // drag midpoint: convert midpoint to vertex first
+          this.midToVertex()
+        }
+      } else if (this._highlightedHandle === 0 && handleIndex === 0) {
+        this.toCache()
+        this.editing = true
+        // drag edges
+        this._state = Polygon2DState.MOVE
+        this.editing = true
+      } else {
+        return
+      }
+    }
+
+    if (this._state === Polygon2DState.RESHAPE) {
+      // dragging point
+      this.reshape(destCoord, limit)
+    } else if (this._state === Polygon2DState.MOVE) {
+      // dragging edges
+      this.move(destCoord, limit)
+    }
+  }
+
+  /**
+   * handle mouse drag end
+   * @param coord
+   * @param labelIndex
+   * @param handleIndex
+   */
+  public onMouseDragEnd (_coord: Vector2D,
+                         _labelIndex: number, _handleIndex: number): void {
+    if (this.editing === true && this._state === Polygon2DState.RESHAPE) {
+      // finish dragging point
+      this._state = Polygon2DState.FINISHED
+      this.editing = false
+    } else if (this.editing === true && this._state === Polygon2DState.MOVE) {
+      // finish dragging edges
+      this._state = Polygon2DState.FINISHED
+      this.editing = false
+    }
+    this._mouseDown = false
+    if (!this.isValid() && !this.editing && this.labelId >= 0) {
+      this._points = []
+      for (const point of this._startingPoints) {
+        this._points.push(point.clone())
+      }
+    }
+  }
   /**
    * handle keyboard down event
    * @param e pressed key

@@ -67,8 +67,9 @@ export class Label2DHandler {
    */
   public onMouseUp (
       coord: Vector2D, labelIndex: number, handleIndex: number): void {
-    const line = coord.subtract(this._mouseDownCoord)
+    const line = coord.clone().subtract(this._mouseDownCoord)
     console.log('onMosueUp function')
+    console.log(coord)
     if (line.area() < 10) {
       this.onMouseClick(coord, labelIndex, handleIndex)
     }
@@ -78,7 +79,9 @@ export class Label2DHandler {
         if (selectedLabel !== this._highlightedLabel) {
           selectedLabel.setHighlighted(false)
         }
-        selectedLabel.onMouseDragEnd(coord, labelIndex, handleIndex)
+        if (line.area() >= 10) {
+          selectedLabel.onMouseDragEnd(coord, labelIndex, handleIndex)
+        }
         this.commitLabel(index)
       })
     }
@@ -92,7 +95,10 @@ export class Label2DHandler {
   public onMouseMove (
       coord: Vector2D, canvasLimit: Size2D,
       labelIndex: number, handleIndex: number): boolean {
-    console.log('on Mouse move function')
+
+    Session.label2dList.selectedLabels.forEach((selectedLabel) => {
+      selectedLabel.onMouseMove(coord, canvasLimit, labelIndex, handleIndex)
+    })
     if (this._mouseDown) {
       this.onMouseDrag(coord, canvasLimit, labelIndex, handleIndex)
       return true
@@ -296,11 +302,12 @@ export class Label2DHandler {
   /** Process mouse click action */
   private onMouseClick (
     coord: Vector2D, labelIndex: number, handleIndex: number): void {
-    console.log("on mouse click")
+    console.log('on mouse click')
     if (!this.hasSelectedLabels() || !this.isEditingSelectedLabels()) {
       if (this._highlightedLabel) {
         this.selectHighlighted()
       } else {
+        console.log('create label')
         Session.dispatch(selectLabels(
           {}, -1, []
         ))
@@ -319,7 +326,7 @@ export class Label2DHandler {
         this._highlightedLabel = label
       }
     }
-
+    console.log('call click')
     if (!this.isKeyDown(Key.META) && !this.isKeyDown(Key.CONTROL)) {
       Session.label2dList.selectedLabels.forEach((selectedLabel) => {
         if (selectedLabel !== this._highlightedLabel) {
@@ -333,13 +340,13 @@ export class Label2DHandler {
   /** Process mouse drag action */
   private onMouseDrag (destCoord: Vector2D, canvasLimit: Size2D,
                        labelIndex: number, handleIndex: number): void {
-    console.log("on mouse drag")
+    console.log('on mouse drag')
     if (!this.hasSelectedLabels() || !this.isEditingSelectedLabels()) {
       if (this._highlightedLabel) {
-        console.log("select highlighted")
+        console.log('select highlighted')
         this.selectHighlighted()
       } else {
-        console.log("create label")
+        console.log('create label')
         Session.dispatch(selectLabels(
           {}, -1, []
         ))
